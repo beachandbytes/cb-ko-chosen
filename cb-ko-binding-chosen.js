@@ -71,7 +71,7 @@ data-bind = "table: {
                 var optionValue = $(element).children("[value=" + selectedOptionValueArray[i] + "]").data("item");
                 
                 if (typeof (_.UO(databoundValue.valueProp)) !== "undefined") {
-                    optionValue = optionValue[_.UO(databoundValue.valueProp)];
+                    optionValue = _.UO(optionValue[_.UO(databoundValue.valueProp)]);
                 }
                 tmpSetValueArray.push(optionValue);
             }
