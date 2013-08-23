@@ -19,24 +19,26 @@ data-bind = "table: {
             if ($(element).prop("tagName") !== "SELECT") {
                 throw "chosen binding can be applied only for select";
             }
-            $(element).addClass("chzn-select");
+            $(element).addClass("chosen-select");
             var value = valueAccessor();
             _.CO.updateSelect(element, value);
-            
+
             var chosen;
+            //this is a bug of chosen, that is if the html havn't been show, then the chosen control (div) will be set as 0px width
+            //to fix this, we have manually get the original select width and use it as the option to set chosen
+            var chosenOpt = { width: $(element).outerWidth() };
             if (value.chosenOption) {
-                chosen = $(element).chosen(_.UO(value.chosenOption));
-            } else {
-                chosen = $(element).chosen();
+                chosenOpt = $.extend(chosenOpt, _.UO(value.chosenOption));
             }
-            
+            chosen = $(element).chosen(chosenOpt);
+
             //hack: if the any parent of chosen css is set to "overflow: hidden", 
             //and the parent height is less to show the full chosen input and drop down, then the drowdown can't be show
             //here we add a div in side the form, as the root container, then it is ok
             if ($(element).parent()) {
                 //on a modal
             }
-            
+
             chosen.change(function (event, data) {
                 _.CO.updateValue(value, $(element).val(), element, allBindingsAccessor);
                 //if (ko.isObservable(value.selectedValue)) {
@@ -49,7 +51,7 @@ data-bind = "table: {
                 //}
             });
         },
-        
+
         //set the bound view model property value to the selected value
         updateValue: function (databoundValue, selectedOptionValue, element, allBindingsAccessor) {
             //the value of option is alwasy the index so we must convet it to the corresponding data item
@@ -65,17 +67,17 @@ data-bind = "table: {
 
             var tmpSetValueArray = [];
             for (var i = 0; i < selectedOptionValueArray.length; i++) {
-                if (typeof(selectedOptionValueArray[i]) === "undefined" || selectedOptionValueArray[i] == null) {
+                if (typeof (selectedOptionValueArray[i]) === "undefined" || selectedOptionValueArray[i] == null) {
                     continue;
                 }
                 var optionValue = $(element).children("[value=" + selectedOptionValueArray[i] + "]").data("item");
-                
+
                 if (typeof (_.UO(databoundValue.valueProp)) !== "undefined") {
                     optionValue = _.UO(optionValue[_.UO(databoundValue.valueProp)]);
                 }
                 tmpSetValueArray.push(optionValue);
             }
-            
+
             if (ko.isObservable(databoundValue.selectedValue)) {
                 //if multi select, then the target must be an observable array, so just update it with the array
                 if ($(element).prop("multiple")) {
@@ -101,18 +103,18 @@ data-bind = "table: {
                 //databoundValue.selectedValue = selectedOptionValue;
             }
         },
-        
+
         update: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
             _.CO.updateSelect(element, valueAccessor());
-            
+
             //for the case, if the selected value is not any option, but the chose is set to single select mode, then it will select the frist value, but won't trigger change event
             //so we force the value are always same between the element and the viewmodel
             _.CO.updateValue(valueAccessor(), $(element).val(), element, allBindingsAccessor);
-            
-            $(element).trigger("liszt:updated");
+
+            $(element).trigger("chosen:updated");
         },
-        
-        updateSelect: function(element, bindData) {
+
+        updateSelect: function (element, bindData) {
             element = $(element);
             element.empty();
             var value = _.UO(bindData);
