@@ -18,3 +18,5 @@ data-bind = "table: {
     displayProp: the property of the items in source that will be used as the text of the option
 
 }"
+
+Demo Html, Please download demo.zip
