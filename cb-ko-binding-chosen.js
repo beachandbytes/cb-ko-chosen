@@ -6,7 +6,7 @@ data-bind = "table: {
     valueProp: *** //the property of the items in source that will be used as the value of the option
     selectedValue: *** //the value that user is selected, it can be array
     selectedValueItemProp: the prop of the items in selectedValue array, that will be used to match the value in source
-    displayProp: the property of the items in source that will be used as the text of the option
+    displayProp: the property of the items in source that will be used as the text of the option, it also can be a valid expression, the "this" is current item, and we can also use $parent, $parents, $data and $root
 }"
 */
 (function () {
@@ -21,7 +21,7 @@ data-bind = "table: {
             }
             $(element).addClass("chosen-select");
             var value = valueAccessor();
-            _.CO.updateSelect(element, value);
+            _.CO.updateSelect(element, value, bindingContext, viewModel);
 
             var chosen;
             //this is a bug of chosen, that is if the html havn't been show, then the chosen control (div) will be set as 0px width
@@ -105,7 +105,7 @@ data-bind = "table: {
         },
 
         update: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-            _.CO.updateSelect(element, valueAccessor());
+            _.CO.updateSelect(element, valueAccessor(), bindingContext, viewModel);
 
             //for the case, if the selected value is not any option, but the chose is set to single select mode, then it will select the frist value, but won't trigger change event
             //so we force the value are always same between the element and the viewmodel
@@ -114,7 +114,7 @@ data-bind = "table: {
             $(element).trigger("chosen:updated");
         },
 
-        updateSelect: function (element, bindData) {
+        updateSelect: function (element, bindData, bindingContext, viewModel) {
             element = $(element);
             element.empty();
             var value = _.UO(bindData);
@@ -152,8 +152,25 @@ data-bind = "table: {
                 }
 
                 var displayValue = _.UO(source[i]);
-                if (displayProp) {
-                    displayValue = _.UO(source[i][displayProp]);
+                if (displayProp && (displayProp in displayValue)) {
+                    displayValue = _.UO(displayValue[displayProp]);
+                } else {
+                    displayValue = (function () {
+                        var func;
+                        if (element[0][displayProp]) {
+                            func = element[0][displayProp];
+                        } else {
+                            var funcBody = "with ($bindingContext){with($bindingContextOverride) {with ($currentItem) {return " + displayProp + ";}}}"
+                            element[0][displayProp] = func = new Function("$bindingContext", "$currentItem", "$bindingContextOverride", funcBody);
+                        }
+                        var bindingContextOverride = {
+                            $parents: bindingContext.$parents.slice(0),
+                            $data: displayValue,
+                            $parent: viewModel
+                        };
+                        bindingContextOverride.$parents.splice(0, 0, viewModel);
+                        return func(bindingContext, displayValue, bindingContextOverride);
+                    })();
                 }
                 var opt;
 
