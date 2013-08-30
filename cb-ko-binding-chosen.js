@@ -26,7 +26,7 @@ data-bind = "table: {
             var chosen;
             //this is a bug of chosen, that is if the html havn't been show, then the chosen control (div) will be set as 0px width
             //to fix this, we have manually get the original select width and use it as the option to set chosen
-            var chosenOpt = { width: $(element).outerWidth() };
+            var chosenOpt = { width: $(element).outerWidth() + "px" };
             if (value.chosenOption) {
                 chosenOpt = $.extend(chosenOpt, _.UO(value.chosenOption));
             }
@@ -152,25 +152,29 @@ data-bind = "table: {
                 }
 
                 var displayValue = _.UO(source[i]);
-                if (displayProp && (displayProp in displayValue)) {
-                    displayValue = _.UO(displayValue[displayProp]);
-                } else {
-                    displayValue = (function () {
-                        var func;
-                        if (element[0][displayProp]) {
-                            func = element[0][displayProp];
-                        } else {
-                            var funcBody = "with ($bindingContext){with($bindingContextOverride) {with ($currentItem) {return " + displayProp + ";}}}"
-                            element[0][displayProp] = func = new Function("$bindingContext", "$currentItem", "$bindingContextOverride", funcBody);
-                        }
-                        var bindingContextOverride = {
-                            $parents: bindingContext.$parents.slice(0),
-                            $data: displayValue,
-                            $parent: viewModel
-                        };
-                        bindingContextOverride.$parents.splice(0, 0, viewModel);
-                        return func(bindingContext, displayValue, bindingContextOverride);
-                    })();
+                if (displayProp) {
+                    if ((displayProp in displayValue)) {
+                        displayValue = _.UO(displayValue[displayProp]);
+                    } else {
+                        displayValue = (function () {
+                            var func;
+                            if (element[0][displayProp]) {
+                                func = element[0][displayProp];
+                            } else {
+                                var funcBody = "with ($bindingContext){with($bindingContextOverride) {with ($currentItem) {return " + displayProp + ";}}}"
+                                element[0][displayProp] = func = new Function("$bindingContext", "$currentItem", "$bindingContextOverride", funcBody);
+                            }
+                            var bindingContextOverride = {
+                                $parents: bindingContext.$parents.slice(0),
+                                $data: displayValue,
+                                $parent: viewModel
+                            };
+                            bindingContextOverride.$parents.splice(0, 0, viewModel);
+                            return func(bindingContext, displayValue, bindingContextOverride);
+                        })();
+                    }
+                } else { //if displayProp is empty, it means directly show the current item
+
                 }
                 var opt;
 
