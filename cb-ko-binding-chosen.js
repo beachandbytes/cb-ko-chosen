@@ -15,11 +15,14 @@ data-bind = "table: {
     };
 
     _.CO = ko.bindingHandlers.chosen = {
+        elementMarkClass: "ko-bindingHandlers-chosen-element",
+
         init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
             if ($(element).prop("tagName") !== "SELECT") {
                 throw "chosen binding can be applied only for select";
             }
             $(element).addClass("chosen-select");
+            $(element).addClass(_.CO.elementMarkClass);
             var value = valueAccessor();
             _.CO.updateSelect(element, value, bindingContext, viewModel);
 
@@ -188,4 +191,36 @@ data-bind = "table: {
             }
         }
     };
+
+    $(document).ready(function () {
+        if (tableInlineEditFinishHandler) {
+            tableInlineEditFinishHandler.registerHandler("." + _.CO.elementMarkClass, function ($currentCell, $editor, $endEdit) {
+                var chosenDiv = $editor.next().filter(".chosen-container");
+                if (chosenDiv.length < 0) {
+                    throw "Can't find chosen container!"
+                }
+                chosenDiv = $(chosenDiv[0]);
+                if (!chosenDiv.attr("tabindex")) {
+                    chosenDiv.attr("tabindex", -1);
+                }
+                $editor.on("chosen:hiding_dropdown", function () {
+                    setTimeout(function () {
+                        chosenDiv.focus();
+                    }, 100);
+
+                });
+                chosenDiv.blur(function (event, triggerReason) {
+                    if (triggerReason === ko.bindingHandlers.tableCRUD.triggerBlurForKOUpdate) {
+                        return;
+                    }
+                    var drop = chosenDiv.find("div.chosen-drop");
+                    if (drop.length > 0 && drop.position().left >= -100) {
+                        return;
+                    }
+                    $endEdit();
+                });
+                chosenDiv.focus();
+            });
+        }
+    });
 })();
