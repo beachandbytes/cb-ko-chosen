@@ -193,7 +193,7 @@ data-bind = "table: {
     };
 
     $(document).ready(function () {
-        if (tableInlineEditFinishHandler) {
+        if (typeof (tableInlineEditFinishHandler) !== "undefined") {
             tableInlineEditFinishHandler.registerHandler("." + _.CO.elementMarkClass, function ($currentCell, $editor, $endEdit) {
                 var chosenDiv = $editor.next().filter(".chosen-container");
                 if (chosenDiv.length < 0) {
