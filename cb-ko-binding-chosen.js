@@ -122,6 +122,9 @@ data-bind = "table: {
             element.empty();
             var value = _.UO(bindData);
             var source = _.UO(value.source);
+            if (typeof (source) === "undefined" || source == null) {
+                source = [];
+            }
             var valueProp = _.UO(value.valueProp);
             var selectedValue = _.UO(value.selectedValue);
             var displayProp = _.UO(value.displayProp);
