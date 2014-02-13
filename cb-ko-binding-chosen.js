@@ -74,7 +74,9 @@ data-bind = "table: {
                     continue;
                 }
                 var optionValue = $(element).children("[value=" + selectedOptionValueArray[i] + "]").data("item");
-
+                if (optionValue === undefined)
+                    continue;
+                    
                 if (typeof (_.UO(databoundValue.valueProp)) !== "undefined") {
                     optionValue = _.UO(optionValue[_.UO(databoundValue.valueProp)]);
                 }
@@ -150,7 +152,7 @@ data-bind = "table: {
                 return false;
             }
 
-
+            element.append('<option></option>');
             for (var i = 0; i < source.length; i++) {
                 var sourceItemValue = _.UO(source[i]);
                 if (valueProp) {
